@@ -1,0 +1,58 @@
+{
+  "name": "Financial Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [-800, 0],
+      "id": "tg-trigger-id",
+      "name": "Telegram Trigger",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "CFO Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {
+          "systemMessage": "=Sei il CFO di Jarvis. Il tuo compito è gestire il database MySQL. \nDATABASE SCHEMA:\n- Table: expenses (id, description, amount, category, date)\n- Target: €11,000 by end of 2026.\nGenera solo query SQL valide."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.3,
+      "position": [-400, 0],
+      "id": "ai-agent-id",
+      "name": "NL2SQL Agent"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.query }}"
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.1,
+      "position": [0, 0],
+      "id": "mysql-id",
+      "name": "Jarvis MariaDB",
+      "credentials": {
+        "mySql": {
+          "id": "YOUR_MYSQL_CREDENTIAL_ID",
+          "name": "Local MariaDB"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": { "main": [[{ "node": "NL2SQL Agent", "type": "main", "index": 0 }]] },
+    "NL2SQL Agent": { "main": [[{ "node": "Jarvis MariaDB", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" }
+}
